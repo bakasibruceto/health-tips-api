@@ -5,7 +5,7 @@ import cors from 'cors';
 const app = express();
 const port = 3000;
 
-import { fetchNewsForCondition, scrapeArticleContent } from './utils/index.js';
+import { fetchNewsForCondition, scrapeArticleContent, findBestSourceForCondition } from './utils/index.js';
 
 app.use(cors());
 app.use(express.json()); // Middleware to parse JSON bodies
@@ -32,6 +32,26 @@ app.post('/scrape', async (req, res) => {
   } catch (error) {
     res.status(500).send({ error: 'Failed to scrape article content' });
   }
+});
+
+app.post('/findBestSource', async (req, res) => {
+    try {
+        const { condition } = req.body;
+        if (!condition) {
+            return res.status(400).send({ error: 'Condition is required' });
+        }
+
+        // Before calling findBestSourceForCondition, ensure condition is valid
+        // Example: if(typeof condition !== 'string') { throw new Error('Condition must be a string'); }
+
+        const bestArticle = await findBestSourceForCondition(condition);
+        // Consider adding more checks here, e.g., if(!bestArticle) { throw new Error('No article found'); }
+        res.send(bestArticle);
+    } catch (error) {
+        console.error('API error:', error);
+        // Consider enhancing error logging for better diagnostics
+        res.status(500).send({ error: 'Failed to find the best source' });
+    }
 });
 
 app.listen(port, () => {
