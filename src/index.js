@@ -5,32 +5,62 @@ import cors from 'cors';
 const app = express();
 const port = 3000;
 
-import { fetchNewsForCondition, scrapeArticleContent, findBestSourceForCondition } from './utils/index.js';
+import { fetchNewsForCondition, scrapeArticleContent, findBestSourceForCondition, scrapeMultipleArticles } from './utils/index.js';
 
 app.use(cors());
 app.use(express.json()); // Middleware to parse JSON bodies
 
 app.get('/news', async (req, res) => {
-  const condition = req.query.condition;
+  const condition = "cancer";
   if (!condition) {
     return res.status(400).send({ error: 'A condition query parameter is required' });
   }
   const articles = await fetchNewsForCondition(condition);
-  res.json(articles);
+  // Assuming each article has a 'url' property, extract these into an array
+  const urls = articles.map(article => article.url);
+  res.json(urls); // Send the array of URLs as the response
 });
 
-
 app.post('/scrape', async (req, res) => {
-  const { articleUrl } = req.body;
-  if (!articleUrl) {
-    return res.status(400).send({ error: 'Article URL is required' });
+  const { articleUrls } = req.body;
+  if (!articleUrls || !Array.isArray(articleUrls) || articleUrls.length === 0) {
+    return res.status(400).send({ error: 'Article URLs are required and must be a non-empty array.' });
   }
 
   try {
-    const content = await scrapeArticleContent(articleUrl);
-    res.send({ content });
+    // Use scrapeMultipleArticles to handle all URLs concurrently
+    const { scrapedArticles, errors } = await scrapeMultipleArticles(articleUrls);
+
+    console.log('Scraping errors:', errors); // Log errors for debugging
+    res.send({ contents: scrapedArticles, errors });
   } catch (error) {
-    res.status(500).send({ error: 'Failed to scrape article content' });
+    console.error('Unexpected error during scraping process:', error);
+    res.status(500).send({ error: 'An unexpected error occurred during the scraping process.' });
+  }
+});
+
+app.get('/fetchAndScrape', async (req, res) => {
+  // Reuse the logic from the /news endpoint
+  const condition = "cancer symptoms"; // This should ideally come from the request, e.g., req.query.condition
+  if (!condition) {
+    return res.status(400).send({ error: 'A condition query parameter is required' });
+  }
+  const articles = await fetchNewsForCondition(condition);
+  const articleUrls = articles.map(article => article.url);
+
+  // Check if URLs were successfully fetched
+  if (!articleUrls || !Array.isArray(articleUrls) || articleUrls.length === 0) {
+    return res.status(400).send({ error: 'Failed to fetch article URLs or no articles found.' });
+  }
+
+  // Reuse the logic from the /scrape endpoint
+  try {
+    const { scrapedArticles, errors } = await scrapeMultipleArticles(articleUrls);
+    console.log('Scraping errors:', errors); // Log errors for debugging
+    res.send({ contents: scrapedArticles, errors });
+  } catch (error) {
+    console.error('Unexpected error during scraping process:', error);
+    res.status(500).send({ error: 'An unexpected error occurred during the scraping process.' });
   }
 });
 
