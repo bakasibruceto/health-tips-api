@@ -5,8 +5,7 @@ import cors from 'cors';
 const app = express();
 const port = 3000;
 
-import { fetchNewsForCondition } from './utils/NewsApi.js';
-import { scrapeArticleContent } from './utils/scraper.js';
+import { fetchNewsForCondition, scrapeArticleContent } from './utils/index.js';
 
 app.use(cors());
 app.use(express.json()); // Middleware to parse JSON bodies
