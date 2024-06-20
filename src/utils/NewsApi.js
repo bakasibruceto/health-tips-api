@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const NEWS_API_CONFIG = {
   baseURL: 'https://newsapi.org/v2/everything?q=',
-  pageSize: 1,
+  pageSize: 10,
 };
 
 async function fetchNewsForCondition(condition) {
