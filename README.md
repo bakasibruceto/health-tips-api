@@ -1,5 +1,5 @@
 # API Used
-- [NHS](https://www.nhs.uk/)
+- [NHS](https://developer.api.nhs.uk/nhs-api)
 - [NewsAPI](https://newsapi.org/)
 # Setup
 ```bash
