@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import fs from 'fs/promises';
 
 import { summarizeText } from './summarizer.js';
 
@@ -14,7 +15,7 @@ export async function scrapeArticleContent(articleUrl) {
     const paragraphs = $('p').map((i, el) => $(el).text().trim()).get();
     let allText = paragraphs.join('\n\n');
 
-    const summary = await summarizeText(allText, 5);
+    const summary = await summarizeText(allText, 10);
 
     return { title, description, summary, url: articleUrl };
   } catch (error) {
@@ -49,3 +50,4 @@ export async function scrapeMultipleArticles(articleUrls, batchSize = 5) {
 
   return { scrapedArticles, errors };
 }
+
