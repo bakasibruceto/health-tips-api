@@ -1,6 +1,7 @@
 # API Used
 - [NHS](https://developer.api.nhs.uk/nhs-api)
 - [NewsAPI](https://newsapi.org/)
+- [datamuse](https://www.datamuse.com/api/)
 # Setup
 ```bash
 cp .env.example .env
