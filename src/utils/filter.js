@@ -1,7 +1,7 @@
 // import { fetchNewsForCondition } from './NewsApi.js';
 // import { scrapeArticleContent } from './scraper.js';
 
-import { fetchNewsForCondition, scrapeArticleContent } from '../index.js';
+import { fetchNewsForCondition, scrapeArticleContent } from './index.js';
 
 const dictionary = ['whooping cough', 'pertussis', 'coughing fits', 'Bordetella pertussis', 'vaccine', 'antibiotics', 'respiratory infection', 'coughing spells', 'whoop sound', 'infants', 'children', 'contagious', 'DTaP vaccine', 'Tdap vaccine'];
 
