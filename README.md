@@ -3,19 +3,21 @@
 # Setup
 ```bash
 cp .env.example .env
-# Edit .env with your API keys
 ```
 
 # Installation
+
+
 ```bash
-#Create Virutal Environment
 py -m venv .venv
+```
 
-#Active .venv
+```bash
 .\.venv\Scripts\Activate
+```
 
-#Install dependencies
-pip install Flask Flask-CORS lxml_html_clean nltk python-dotenv requests setuptools sumy
+```bash
+pip install Flask Flask-CORS sumy nltk requests python-dotenv setuptools 
 ```
 
 # Run
