@@ -17,7 +17,7 @@ py -m venv .venv
 ```
 
 ```bash
-pip install Flask Flask-CORS sumy nltk requests python-dotenv setuptools 
+pip install Flask Flask-CORS sumy numpy nltk requests python-dotenv setuptools 
 ```
 
 # Run
@@ -25,3 +25,39 @@ pip install Flask Flask-CORS sumy nltk requests python-dotenv setuptools
 flask run
 ```
      
+
+# sample api call - Summarizer
+
+```bash
+function summarizeText(
+  method: string, 
+  language: string, 
+  sentenceCount: number, 
+  inputType: string, 
+  inputText: string
+): void {
+  const apiUrl = 'http://localhost:5000/summarize';
+  const data = {
+    data: [method, language, sentenceCount, inputType, inputText]
+  };
+  
+  fetch(apiUrl, {
+    method: 'POST', 
+    headers: {
+      'Content-Type': 'application/json' 
+    },
+    body: JSON.stringify(data) 
+  })
+    .then(response => response.text()) 
+    .then(summary => {
+      console.log('Summary:', summary);
+    })
+    .catch(error => {
+      console.error('Error:', error); 
+    });
+}
+
+// Sample
+summarizeText('lex-rank', 'english', 5, 'URL', 'https://www.nhs.uk/live-well/alcohol-advice/calculating-alcohol-units/');
+
+```
