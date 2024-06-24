@@ -24,9 +24,22 @@ pip install Flask Flask-CORS sumy numpy nltk requests python-dotenv setuptools
 ```bash
 flask run
 ```
-     
 
-# sample api call - Summarizer
+# Summarizer
+### methods
+`LSA`
+`text-rank`
+`lex-rank` 
+`edmudson` 
+`luhn`
+`kl-sum`
+`random`
+`reduction`
+
+### inputType
+`text` `URL`
+ 
+### sample api call - Summarizer
 
 ```bash
 function summarizeText(
