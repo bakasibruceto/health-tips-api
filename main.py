@@ -1,5 +1,5 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.parsers.html import HtmlParser
 from sumy.nlp.tokenizers import Tokenizer
@@ -10,51 +10,62 @@ import os
 import requests
 import random
 from dotenv import load_dotenv
+from pydantic import BaseModel
+from typing import Optional, List
 
 # Load environment variables
 load_dotenv()
 
-# Initialize Flask app
-app = Flask(__name__)
-CORS(app)
+# Initialize FastAPI app
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Load configuration
 from config import Config
-app.config.from_object(Config)
+app.config = Config()
 
 # Ensure NLTK resources are downloaded
-nltk.download("punkt")
+@app.on_event("startup")
+async def download_nltk_resources():
+    nltk.download("punkt")
 
+class SummarizeRequest(BaseModel):
+    data: List[Optional[str]]
 
 @app.get("/")
-def index():
-    return "<h1>Hello!</h1>"
+async def index():
+    return {"message": "Hello!"}
 
 @app.post("/summarize")
-def summarize():
-    method, language, sentence_count, input_type, input_, *rest = (
-        request.get_json().get("data", "")
-    )
+async def summarize(request: SummarizeRequest):
+    method, language, sentence_count, input_type, input_, *rest = request.data
+    
     if method == "LSA":
         from sumy.summarizers.lsa import LsaSummarizer as Summarizer
-    if method == "text-rank":
+    elif method == "text-rank":
         from sumy.summarizers.text_rank import TextRankSummarizer as Summarizer
-    if method == "lex-rank":
+    elif method == "lex-rank":
         from sumy.summarizers.lex_rank import LexRankSummarizer as Summarizer
-    if method == "edmundson":
+    elif method == "edmundson":
         from sumy.summarizers.edmundson import EdmundsonSummarizer as Summarizer
-    if method == "luhn":
+    elif method == "luhn":
         from sumy.summarizers.luhn import LuhnSummarizer as Summarizer
-    if method == "kl-sum":
+    elif method == "kl-sum":
         from sumy.summarizers.kl import KLSummarizer as Summarizer
-    if method == "random":
+    elif method == "random":
         from sumy.summarizers.random import RandomSummarizer as Summarizer
-    if method == "reduction":
+    elif method == "reduction":
         from sumy.summarizers.reduction import ReductionSummarizer as Summarizer
 
     if input_type == "URL":
         parser = HtmlParser.from_url(input_, Tokenizer(language))
-    if input_type == "text":
+    elif input_type == "text":
         parser = PlaintextParser.from_string(input_, Tokenizer(language))
 
     stemmer = Stemmer(language)
@@ -73,23 +84,21 @@ def summarize():
 
     return summary
 
-@app.route("/get_condition")
-def get_condition():
-    condition = request.args.get("condition")  # Default condition
+@app.get("/get_condition")
+async def get_condition(condition: Optional[str] = None):
     nhs_api_key = os.getenv("NHS_API_KEY")
 
     if not nhs_api_key:
-        return jsonify({"error": "NHS_API_KEY is not set"}), 500
+        raise HTTPException(status_code=500, detail="NHS_API_KEY is not set")
 
-    #If a specific condition is not requested, choose one randomly from the list
-    if not condition or condition not in app.config["CONDITIONS"]:
-        condition = random.choice(app.config["CONDITIONS"])
+    if not condition or condition not in app.config.CONDITIONS:
+        condition = random.choice(app.config.CONDITIONS)
 
-    url = f"{app.config['NHS_API_BASE_URL']}{requests.utils.quote(condition)}"
+    url = f"{app.config.NHS_API_BASE_URL}{requests.utils.quote(condition)}"
     headers = {
         "subscription-key": nhs_api_key,
-        "Content-Type": app.config["CONTENT_TYPE"],
-        "User-Agent": app.config["USER_AGENT"],
+        "Content-Type": app.config.CONTENT_TYPE,
+        "User-Agent": app.config.USER_AGENT,
     }
 
     response = requests.get(url, headers=headers)
@@ -97,37 +106,25 @@ def get_condition():
     if response.status_code == 200:
         extracted_data = extract_urls_and_headlines(response.json())
         random_data = get_random_article(extracted_data)
-        return jsonify(random_data)
+        return random_data
     else:
-        return jsonify(
-            {"error": "Failed to fetch data", "status_code": response.status_code}
-        )
+        raise HTTPException(status_code=response.status_code, detail="Failed to fetch data")
 
 def extract_urls_and_headlines(api_response):
     result = []
 
-    if "mainEntityOfPage" in api_response and isinstance(
-        api_response["mainEntityOfPage"], list
-    ):
+    if "mainEntityOfPage" in api_response and isinstance(api_response["mainEntityOfPage"], list):
         for main_entity in api_response["mainEntityOfPage"]:
-            if "mainEntityOfPage" in main_entity and isinstance(
-                main_entity["mainEntityOfPage"], list
-            ):
+            if "mainEntityOfPage" in main_entity and isinstance(main_entity["mainEntityOfPage"], list):
                 for web_page_element in main_entity["mainEntityOfPage"]:
-                    result.append(
-                        {
-                            "headline": web_page_element.get("headline", ""),
-                            "url": web_page_element["url"],
-                        }
-                    )
+                    result.append({
+                        "headline": web_page_element.get("headline", ""),
+                        "url": web_page_element["url"],
+                    })
     return result
 
 def get_random_article(extracted_data):
-    random_index = random.randint(0, len(extracted_data) - 1)
-    return extracted_data[random_index]
-
-def create_app():
-    return app
-  
-if __name__ == "__main__":
-    app.run(debug=app.config["DEBUG"])
+    if extracted_data:
+        random_index = random.randint(0, len(extracted_data) - 1)
+        return extracted_data[random_index]
+    return {}

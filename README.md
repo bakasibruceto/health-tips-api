@@ -17,12 +17,12 @@ py -m venv .venv
 ```
 
 ```bash
-pip install Flask Flask-CORS sumy numpy nltk requests python-dotenv setuptools 
+pip install fastapi nltk numpy pydantic python-dotenv requests setuptools sumy uvcorn     
 ```
 
 # Run
 ```bash
-flask run
+uvicorn main:app --reload
 ```
 
 # Summarizer
@@ -45,7 +45,7 @@ flask run
 function summarizeText(
   method: string, 
   language: string, 
-  sentenceCount: number, 
+  sentenceCount: number 
   inputType: string, 
   inputText: string
 ): void {
