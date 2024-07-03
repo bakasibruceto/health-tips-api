@@ -17,7 +17,7 @@ py -m venv .venv
 ```
 
 ```bash
-pip install fastapi nltk numpy pydantic python-dotenv requests setuptools sumy uvcorn     
+pip install fastapi nltk numpy pydantic python-dotenv requests setuptools sumy uvicorn     
 ```
 
 # Run
