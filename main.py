@@ -12,7 +12,8 @@ import random
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from typing import Optional, List
-
+import asyncio
+import json
 # Load environment variables
 load_dotenv()
 
@@ -28,24 +29,33 @@ app.add_middleware(
 
 # Load configuration
 from config import Config
+
 app.config = Config()
+
+
+async def main():
+    await get_condition()
+
 
 # Ensure NLTK resources are downloaded
 @app.on_event("startup")
 async def download_nltk_resources():
     nltk.download("punkt")
 
+
 class SummarizeRequest(BaseModel):
     data: List[Optional[str]]
+
 
 @app.get("/")
 async def index():
     return {"message": "Hello!"}
 
+
 @app.post("/summarize")
 async def summarize(request: SummarizeRequest):
     method, language, sentence_count, input_type, input_, *rest = request.data
-    
+
     if method == "LSA":
         from sumy.summarizers.lsa import LsaSummarizer as Summarizer
     elif method == "text-rank":
@@ -84,47 +94,44 @@ async def summarize(request: SummarizeRequest):
 
     return summary
 
+
 @app.get("/get_condition")
-async def get_condition(condition: Optional[str] = None):
-    nhs_api_key = os.getenv("NHS_API_KEY")
-
-    if not nhs_api_key:
-        raise HTTPException(status_code=500, detail="NHS_API_KEY is not set")
-
-    if not condition or condition not in app.config.CONDITIONS:
-        condition = random.choice(app.config.CONDITIONS)
-
-    url = f"{app.config.NHS_API_BASE_URL}{requests.utils.quote(condition)}"
-    headers = {
-        "subscription-key": nhs_api_key,
-        "Content-Type": app.config.CONTENT_TYPE,
-        "User-Agent": app.config.USER_AGENT,
-    }
-
-    response = requests.get(url, headers=headers)
-
+async def get_condition():
+    url = "https://health.gov/myhealthfinder/api/v3/topicsearch.json?TopicId=30542&Lang=en"
+    response = requests.get(url)
     if response.status_code == 200:
-        extracted_data = extract_urls_and_headlines(response.json())
-        random_data = get_random_article(extracted_data)
-        return random_data
+        data = response.json()
+        # Navigate through the keys: Result -> Resources -> Resource -> Sections -> section
+        result = data.get("Result", {})
+        resources = result.get("Resources", {})
+        resource = (
+            resources.get("Resource", {})[0]
+            if isinstance(resources.get("Resource"), list) and resources.get("Resource")
+            else None
+        )
+        title = resource.get("Title")
+        sections = resource.get("Sections", [])
+        lastUpdated = resource.get("LastUpdate")
+        link = resource.get("AccessibleVersion")
+
+        data = {"LastUpdated": lastUpdated, "title":title, "Link": link, "Sections": sections}
+        print(json.dumps(data, indent=5))
+        # return sections
     else:
-        raise HTTPException(status_code=response.status_code, detail="Failed to fetch data")
+        print({"error": "Failed to fetch data from the health.gov API"})
 
-def extract_urls_and_headlines(api_response):
-    result = []
 
-    if "mainEntityOfPage" in api_response and isinstance(api_response["mainEntityOfPage"], list):
-        for main_entity in api_response["mainEntityOfPage"]:
-            if "mainEntityOfPage" in main_entity and isinstance(main_entity["mainEntityOfPage"], list):
-                for web_page_element in main_entity["mainEntityOfPage"]:
-                    result.append({
-                        "headline": web_page_element.get("headline", ""),
-                        "url": web_page_element["url"],
-                    })
-    return result
+async def main():
+    await get_condition()
+    # data = await get_condition()
+    # first_section = data['section'][0]  # Access the first item in the list
+    # # print(first_section)
+    # # To use the values, you can directly access them as shown below
+    # title = first_section['Title']
+    # description = first_section['Description']
+    # content = first_section['Content']
+    # print(f"Title: {title}, Description: {description}, Content: {content}")
 
-def get_random_article(extracted_data):
-    if extracted_data:
-        random_index = random.randint(0, len(extracted_data) - 1)
-        return extracted_data[random_index]
-    return {}
+
+if __name__ == "__main__":
+    asyncio.run(main())
