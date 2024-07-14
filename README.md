@@ -1,5 +1,7 @@
 # API Used
-- [NHS](https://developer.api.nhs.uk/nhs-api)
+- <a href="https://developer.api.nhs.uk/nhs-api" target="_blank">NHS</a> (might be replaced by health.gov)
+- <a href="https://health.gov/our-work/national-health-initiatives/health-literacy/consumer-health-content/free-web-content/apis-developers" target="_blank">Health.gov</a>
+
 # Setup
 ```bash
 cp .env.example .env
