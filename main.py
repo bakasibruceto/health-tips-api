@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Query
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.parsers.html import HtmlParser
 from sumy.nlp.tokenizers import Tokenizer
@@ -14,6 +15,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 import asyncio
 import json
+
 # Load environment variables
 load_dotenv()
 
@@ -29,12 +31,12 @@ app.add_middleware(
 
 # Load configuration
 from config import Config
-
+    
 app.config = Config()
 
 
 async def main():
-    await get_condition()
+    await get_data()
 
 
 # Ensure NLTK resources are downloaded
@@ -95,9 +97,9 @@ async def summarize(request: SummarizeRequest):
     return summary
 
 
-@app.get("/get_condition")
-async def get_condition():
-    url = "https://health.gov/myhealthfinder/api/v3/topicsearch.json?TopicId=30542&Lang=en"
+@app.get("/get_data")
+async def get_data(topic_id: int):
+    url = f"https://health.gov/myhealthfinder/api/v3/topicsearch.json?TopicId={topic_id}&Lang=en"
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
@@ -114,15 +116,90 @@ async def get_condition():
         lastUpdated = resource.get("LastUpdate")
         link = resource.get("AccessibleVersion")
 
-        data = {"LastUpdated": lastUpdated, "title":title, "Link": link, "Sections": sections}
+        data = {
+            "LastUpdated": lastUpdated,
+            "title": title,
+            "Link": link,
+            "Sections": sections,
+        }
         print(json.dumps(data, indent=5))
         # return sections
     else:
         print({"error": "Failed to fetch data from the health.gov API"})
 
 
+@app.get("/get_list")
+async def get_list(id: str = Query(None, description="Filter resources by Id")):
+    url = "https://health.gov/myhealthfinder/api/v3/topicsearch.json?lang=en&categoryId=15"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        # Navigate through the keys: Result -> Resources -> Resource
+        result = data.get("Result", {})
+        resources = result.get("Resources", {})
+        resource_list = resources.get("Resource", [])
+
+        # Extract all Ids from the resource list
+        ids = [resource.get("Id") for resource in resource_list if "Id" in resource]
+
+        # Filter resources by the provided Id if it exists
+        if id:
+            resource_list = [
+                resource for resource in resource_list if resource.get("Id") == id
+            ]
+
+        # Create a dictionary with the Ids and their total count
+        data = {"Ids": ids, "TotalIds": len(ids), "FilteredResources": resource_list}
+        print(json.dumps(data, indent=4))
+        return data
+    else:
+        print(
+            json.dumps(
+                {"error": "Failed to fetch data from the health.gov API"}, indent=4
+            )
+        )
+        return {"error": "Failed to fetch data from the health.gov API"}
+
+
+@app.get("/rand_list")
+async def rand_list(
+    topic_id: int = Query(..., description="Topic ID to filter resources"),
+    count: int = Query(1, description="Number of random IDs to return"),
+):
+    url = f"https://health.gov/myhealthfinder/api/v3/topicsearch.json?lang=en&categoryId={topic_id}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        # Navigate through the keys: Result -> Resources -> Resource
+        result = data.get("Result", {})
+        resources = result.get("Resources", {})
+        resource_list = resources.get("Resource", [])
+
+        # Extract all Ids from the resource list
+        ids = [resource.get("Id") for resource in resource_list if "Id" in resource]
+
+        # Ensure at least one ID is returned
+        if not ids:
+            return {"error": "No IDs found in the resource list"}
+
+        # Select one random ID
+        random_id = random.choice(ids)
+
+        # Create a dictionary with the random Id and its total count
+        data = {"RandomId": random_id, "TotalRandomIds": 1}
+        # print(json.dumps(data, indent=4))
+        return data
+    else:
+        print(
+            json.dumps(
+                {"error": "Failed to fetch data from the health.gov API"}, indent=4
+            )
+        )
+        return {"error": "Failed to fetch data from the health.gov API"}
+
+
 async def main():
-    await get_condition()
+    await get_list("15")
     # data = await get_condition()
     # first_section = data['section'][0]  # Access the first item in the list
     # # print(first_section)
