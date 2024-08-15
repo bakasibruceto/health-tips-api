@@ -176,14 +176,14 @@ async def get_list_and_random(
     return data
 
 @app.get("/health_tips")
-async def health_tips():
-    data = await get_list_and_random(25)
+async def health_tips(param: str):
+    data = await get_list_and_random(param)
     id = data.get("RandomId")
     result = await get_data(id)
     return result
 
 #async def main():
-#    await health_tips() 
+#   await health_tips(25) 
         
 if __name__ == "__main__":
     asyncio.run(main())
