@@ -50,7 +50,7 @@ py -m venv .venv
 ```
 
 ```bash
-pip install fastapi nltk numpy pydantic python-dotenv requests setuptools sumy uvicorn beautifulsoup4 lxml    
+pip install fastapi nltk numpy pydantic python-dotenv requests setuptools sumy uvicorn 
 ```
 
 # Run
