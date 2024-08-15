@@ -25,7 +25,7 @@
   <tr><td>23</td><td>Obesity</td><td>10</td></tr>
   <tr><td>24</td><td>Physical Activity</td><td>9</td></tr>
   <tr><td>28</td><td>Sexual Health</td><td>15</td></tr>
-  <tr><td>29</td><td>Vaccines</td><td>7<td></tr>
+  <tr><td>29</td><td>Vaccines</td><td>7</tr>
 <tr><td></td><td><b>Total</td><td>116</td></tr>
   
 
