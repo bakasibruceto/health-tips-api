@@ -34,7 +34,6 @@ async def download_nltk_resources():
 class SummarizeRequest(BaseModel):
     data: List[Optional[str]]
 
-@app.post("/summarize")
 async def summarize(request: SummarizeRequest):
     language = "english"
     sentence_count, input_, *rest = request.data
