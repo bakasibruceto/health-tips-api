@@ -14,18 +14,19 @@
 
 # Health tips Category ID's
 <table>
-  <thead><tr><th>Id</th><th>English Category</th></tr></thead>
+  <thead><tr><th>ID</th><th>English Category</th><th></th></tr></thead>
   <tbody>
-  <tr><td>15</td><td>Cancer</td></tr>
-  <tr><td>16</td><td>Diabetes</td></tr>
-  <tr><td>18</td><td>Heart Health</td></tr>
-  <tr><td>19</td><td>HIV</td></tr>
-  <tr><td>109</td><td>Mental Health</td></tr
-  <tr><td>21</td><td>Nutrition</td></tr>
-  <tr><td>23</td><td>Obesity</td></tr>
-  <tr><td>24</td><td>Physical Activity</td></tr>
-  <tr><td>28</td><td>Sexual Health</td></tr>
-  <tr><td>29</td><td>Vaccines</td></tr>
+  <tr><td>15</td><td>Cancer</td><td>14</td></tr>
+  <tr><td>16</td><td>Diabetes</td><td>14</td></tr>
+  <tr><td>18</td><td>Heart Health</td><td>17</td></tr>
+  <tr><td>19</td><td>HIV</td><td>6</td></tr>
+  <tr><td>109</td><td>Mental Health</td><td>11</td></tr
+  <tr><td>21</td><td>Nutrition</td><td>13</td></tr>
+  <tr><td>23</td><td>Obesity</td><td>10</td></tr>
+  <tr><td>24</td><td>Physical Activity</td><td>9</td></tr>
+  <tr><td>28</td><td>Sexual Health</td><td>15</td></tr>
+  <tr><td>29</td><td>Vaccines</td><td><td></tr>
+<tr><td></td><td><b>Total</td><td>116</td></tr>
   
 
   </tbody>
