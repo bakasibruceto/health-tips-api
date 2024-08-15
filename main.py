@@ -15,6 +15,8 @@ from pydantic import BaseModel
 from typing import Optional, List
 import asyncio
 import json
+from datetime import datetime, timezone
+from bs4 import BeautifulSoup
 
 # Load environment variables
 load_dotenv()
@@ -111,104 +113,73 @@ async def get_data(topic_id: int):
             if isinstance(resources.get("Resource"), list) and resources.get("Resource")
             else None
         )
-        title = resource.get("Title")
-        sections = resource.get("Sections", [])
-        lastUpdated = resource.get("LastUpdate")
-        link = resource.get("AccessibleVersion")
+        if resource:
+            sections = resource.get("Sections", {}).get("section", {})
+            if sections:
+                first_section = sections[0]
+                content = first_section.get('Content', 'No Content')
+                title = resource.get("Title")
+                lastUpdated = resource.get("LastUpdate")
+                link = resource.get("AccessibleVersion")
+                lastUpdatedInt = int(lastUpdated)
+                lastUpdatedDate = datetime.fromtimestamp(lastUpdatedInt, timezone.utc)
+                lastUpdatedFormatted = lastUpdatedDate.strftime("%B %d %Y")
+                soup = BeautifulSoup(content, "html.parser")
+                clean_content = soup.get_text()
+            else:
+                return {"error": "Sections list is empty"}
+        else:
+            return {"error": "No resource found"}       
 
         data = {
-            "LastUpdated": lastUpdated,
+            "LastUpdated": lastUpdatedFormatted,
             "title": title,
-            "Link": link,
-            "Sections": sections,
+            "link": link,
+            "content": clean_content
         }
         print(json.dumps(data, indent=5))
         # return sections
     else:
         print({"error": "Failed to fetch data from the health.gov API"})
 
-
-@app.get("/get_list")
-async def get_list(id: str = Query(None, description="Filter resources by Id")):
-    url = "https://health.gov/myhealthfinder/api/v3/topicsearch.json?lang=en&categoryId=15"
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        # Navigate through the keys: Result -> Resources -> Resource
-        result = data.get("Result", {})
-        resources = result.get("Resources", {})
-        resource_list = resources.get("Resource", [])
-
-        # Extract all Ids from the resource list
-        ids = [resource.get("Id") for resource in resource_list if "Id" in resource]
-
-        # Filter resources by the provided Id if it exists
-        if id:
-            resource_list = [
-                resource for resource in resource_list if resource.get("Id") == id
-            ]
-
-        # Create a dictionary with the Ids and their total count
-        data = {"Ids": ids, "TotalIds": len(ids), "FilteredResources": resource_list}
-        print(json.dumps(data, indent=4))
-        return data
-    else:
-        print(
-            json.dumps(
-                {"error": "Failed to fetch data from the health.gov API"}, indent=4
-            )
-        )
-        return {"error": "Failed to fetch data from the health.gov API"}
-
-
-@app.get("/rand_list")
-async def rand_list(
+@app.get("/get_list_and_random")
+async def get_list_and_random(
     topic_id: int = Query(..., description="Topic ID to filter resources"),
-    count: int = Query(1, description="Number of random IDs to return"),
+    id: str = Query(None, description="Filter resources by Id"),
 ):
     url = f"https://health.gov/myhealthfinder/api/v3/topicsearch.json?lang=en&categoryId={topic_id}"
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        # Navigate through the keys: Result -> Resources -> Resource
-        result = data.get("Result", {})
-        resources = result.get("Resources", {})
-        resource_list = resources.get("Resource", [])
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch data: {str(e)}")
 
-        # Extract all Ids from the resource list
-        ids = [resource.get("Id") for resource in resource_list if "Id" in resource]
+    data = response.json()
+    result = data.get("Result", {})
+    resources = result.get("Resources", {})
+    resource_list = resources.get("Resource", [])
 
-        # Ensure at least one ID is returned
-        if not ids:
-            return {"error": "No IDs found in the resource list"}
+    ids = [resource.get("Id") for resource in resource_list if "Id" in resource]
 
-        # Select one random ID
-        random_id = random.choice(ids)
+    if not ids:
+        raise HTTPException(status_code=404, detail="No IDs found in the resource list")
 
-        # Create a dictionary with the random Id and its total count
-        data = {"RandomId": random_id, "TotalRandomIds": 1}
-        # print(json.dumps(data, indent=4))
-        return data
-    else:
-        print(
-            json.dumps(
-                {"error": "Failed to fetch data from the health.gov API"}, indent=4
-            )
-        )
-        return {"error": "Failed to fetch data from the health.gov API"}
+    random_id = random.choice(ids)
 
+    data = {
+        "Ids": ids,
+        "TotalIds": len(ids),
+        "RandomId": random_id,
+    }
+    
+    print(json.dumps(data, indent=4))
+    return data
 
 async def main():
-    await get_list("15")
-    # data = await get_condition()
-    # first_section = data['section'][0]  # Access the first item in the list
-    # # print(first_section)
-    # # To use the values, you can directly access them as shown below
-    # title = first_section['Title']
-    # description = first_section['Description']
-    # content = first_section['Content']
-    # print(f"Title: {title}, Description: {description}, Content: {content}")
-
-
+   
+    data = await get_list_and_random(25)
+    id = data.get("RandomId")
+    await get_data(id)
+    
 if __name__ == "__main__":
     asyncio.run(main())
