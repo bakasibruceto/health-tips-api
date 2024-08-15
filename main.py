@@ -175,6 +175,13 @@ async def get_list_and_random(
     print(json.dumps(data, indent=4))
     return data
 
+@app.get("/health_tips")
+async def health_tips():
+    data = await get_list_and_random(25)
+    id = data.get("RandomId")
+    result = await get_data(id)
+    return result
+
 # async def main():
 #     data = await get_list_and_random(25)
 #     id = data.get("RandomId")
