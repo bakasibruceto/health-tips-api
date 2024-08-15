@@ -1,5 +1,4 @@
 import asyncio
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -17,7 +16,6 @@ from sumy.nlp.tokenizers import Tokenizer
 from sumy.parsers.html import HtmlParser
 # ---------End copy here----------
 
-load_dotenv()
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -26,9 +24,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-async def main():
-    await get_data()
 
 # ---------Start copy from here---------
 # Modify the code if needed
@@ -139,7 +134,7 @@ async def get_list_and_random(
 # ---------End copy here----------
 
 async def main():
-  await health_tips(25) 
+  await health_tips(109) 
         
 if __name__ == "__main__":
     asyncio.run(main())
