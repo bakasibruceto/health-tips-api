@@ -175,11 +175,10 @@ async def get_list_and_random(
     print(json.dumps(data, indent=4))
     return data
 
-async def main():
-   
-    data = await get_list_and_random(25)
-    id = data.get("RandomId")
-    await get_data(id)
+# async def main():
+#     data = await get_list_and_random(25)
+#     id = data.get("RandomId")
+#     await get_data(id)
     
 if __name__ == "__main__":
     asyncio.run(main())
