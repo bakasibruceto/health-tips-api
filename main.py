@@ -98,8 +98,6 @@ async def summarize(request: SummarizeRequest):
 
     return summary
 
-
-@app.get("/get_data")
 async def get_data(topic_id: int):
     url = f"https://health.gov/myhealthfinder/api/v3/topicsearch.json?TopicId={topic_id}&Lang=en"
     response = requests.get(url)
@@ -142,7 +140,6 @@ async def get_data(topic_id: int):
     else:
         print({"error": "Failed to fetch data from the health.gov API"})
 
-@app.get("/get_list_and_random")
 async def get_list_and_random(
     topic_id: int = Query(..., description="Topic ID to filter resources"),
     id: str = Query(None, description="Filter resources by Id"),
@@ -182,8 +179,8 @@ async def health_tips(param: str):
     result = await get_data(id)
     return result
 
-#async def main():
-#   await health_tips(25) 
+async def main():
+  await health_tips(25) 
         
 if __name__ == "__main__":
     asyncio.run(main())
