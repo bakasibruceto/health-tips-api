@@ -1,10 +1,6 @@
 # API Used
 - <a href="https://health.gov/our-work/national-health-initiatives/health-literacy/consumer-health-content/free-web-content/apis-developers" target="_blank">Health.gov</a>
 
-# How to call api
-
-
-
 # Response format
 ```bash
 {
