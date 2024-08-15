@@ -31,13 +31,7 @@
   </tbody>
 </table>
 
-
-# Setup
-```bash
-cp .env.example .env
-```
-
-# Installation
+# Setup & Installation
 
 
 ```bash
