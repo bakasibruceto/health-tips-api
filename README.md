@@ -1,6 +1,9 @@
 # API Used
 - <a href="https://health.gov/our-work/national-health-initiatives/health-literacy/consumer-health-content/free-web-content/apis-developers" target="_blank">Health.gov</a>
 
+# How to call api
+
+
 
 # Response format
 ```bash
@@ -50,7 +53,7 @@ py -m venv .venv
 ```
 
 ```bash
-pip install fastapi nltk numpy pydantic python-dotenv requests setuptools sumy uvicorn 
+pip install fastapi[all] uvicorn nltk requests pydantic sumy lxml[html_clean]
 ```
 
 # Run
