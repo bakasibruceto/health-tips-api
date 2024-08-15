@@ -123,7 +123,7 @@ async def get_data(topic_id: int):
                 link = resource.get("AccessibleVersion")
                 lastUpdatedInt = int(lastUpdated)
                 lastUpdatedDate = datetime.fromtimestamp(lastUpdatedInt, timezone.utc)
-                lastUpdatedFormatted = lastUpdatedDate.strftime("%B %d %Y")
+                lastUpdatedFormatted = lastUpdatedDate.strftime("%B %d, %Y")
                 soup = BeautifulSoup(content, "html.parser")
                 clean_content = soup.get_text()
             else:
@@ -182,10 +182,8 @@ async def health_tips():
     result = await get_data(id)
     return result
 
-# async def main():
-#     data = await get_list_and_random(25)
-#     id = data.get("RandomId")
-#     await get_data(id)
-    
+#async def main():
+#    await health_tips() 
+        
 if __name__ == "__main__":
     asyncio.run(main())
