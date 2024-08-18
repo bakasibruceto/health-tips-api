@@ -88,6 +88,7 @@ async def get_data(topic_id: int):
             return {"error": "No resource found"}       
 
         data = {
+            "id": id,
             "LastUpdated": lastUpdatedFormatted,
             "title": title,
             "link": link,
